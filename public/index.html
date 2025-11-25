@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Tug of War</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #1e3a8a 0%, #7e22ce 50%, #db2777 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 700px;
+            width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        h1 {
+            color: white;
+            font-size: 3rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        h2 {
+            color: white;
+            font-size: 2rem;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+
+        .subtitle {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .icon-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .icon {
+            width: 80px;
+            height: 80px;
+            color: #fbbf24;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        input {
+            width: 100%;
+            padding: 18px 24px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        input:focus {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.3);
+        }
+
+        button {
+            width: 100%;
+            padding: 18px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #fbbf24 0%, #f97316 100%);
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(251, 191, 36, 0.5);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px -5px rgba(251, 191, 36, 0.6);
+        }
+
+        .btn-click {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            color: white;
+            font-size: 2rem;
+            padding: 60px;
+            margin-top: 30px;
+            box-shadow: 0 20px 40px -10px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-click:active {
+            transform: scale(0.95);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #60a5fa 0%, #a855f7 100%);
+            color: white;
+            box-shadow: 0 10px 25px -5px rgba(96, 165, 250, 0.5);
+        }
+
+        .players {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .player-info {
+            text-align: center;
+        }
+
+        .player-label {
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 5px;
+        }
+
+        .player-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+
+        .vs {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #fbbf24;
+        }
+
+        .progress-container {
+            margin: 30px 0;
+        }
+
+        .progress-bar {
+            position: relative;
+            height: 48px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            overflow: hidden;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            margin-bottom: 10px;
+        }
+
+        .progress-fill {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            background: linear-gradient(135deg, #3b82f6 0%, #a855f7 100%);
+            transition: width 0.3s ease;
+        }
+
+        .progress-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-weight: bold;
+            font-size: 1.2rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .progress-labels {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 10px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+        }
+
+        .hint {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.9rem;
+            margin-top: 15px;
+        }
+
+        .trophy {
+            font-size: 5rem;
+            margin: 20px 0;
+        }
+
+        .result {
+            color: white;
+            font-size: 1.5rem;
+            margin: 20px 0;
+            opacity: 0.9;
+        }
+
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+
+        .connected {
+            background: rgba(16, 185, 129, 0.9);
+            color: white;
+        }
+
+        .disconnected {
+            background: rgba(239, 68, 68, 0.9);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="connection-status disconnected" id="connectionStatus">Connecting...</div>
+
+    <div class="container">
+        <!-- Name Entry Screen -->
+        <div id="nameScreen" class="screen active">
+            <div class="text-center">
+                <div class="icon-container">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                </div>
+                <h1>Tug of War</h1>
+                <p class="subtitle">Enter your name to find an opponent</p>
+                <input type="text" id="nameInput" placeholder="Your name" maxlength="20">
+                <button class="btn-primary" onclick="startGame()" id="startBtn">Find Opponent</button>
+            </div>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div id="waitingScreen" class="screen">
+            <div class="text-center">
+                <div class="icon-container">
+                    <svg class="icon spinner" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </div>
+                <h2>Waiting for opponent...</h2>
+                <p class="subtitle">You: <span id="waitingPlayerName"></span></p>
+            </div>
+        </div>
+
+        <!-- Playing Screen -->
+        <div id="playingScreen" class="screen">
+            <div class="players">
+                <div class="player-info">
+                    <div class="player-label">You</div>
+                    <div class="player-name" id="myName"></div>
+                </div>
+                <div class="vs">VS</div>
+                <div class="player-info">
+                    <div class="player-label">Opponent</div>
+                    <div class="player-name" id="opponentName"></div>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                    <div class="progress-text" id="progressText">0</div>
+                </div>
+                <div class="progress-labels">
+                    <span id="leftPlayer"></span>
+                    <span>First to +15 wins!</span>
+                    <span id="rightPlayer"></span>
+                </div>
+            </div>
+
+            <button class="btn-click" onclick="handleClick()">CLICK!</button>
+            <p class="hint">Click as fast as you can!</p>
+        </div>
+
+        <!-- Finished Screen -->
+        <div id="finishedScreen" class="screen">
+            <div class="text-center">
+                <div class="trophy">🏆</div>
+                <h2 id="resultTitle"></h2>
+                <p class="result" id="resultText"></p>
+                <button class="btn-secondary" onclick="resetGame()">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        let gameState = 'name';
+        let playerName = '';
+        let gameId = null;
+        let myPosition = null;
+        let clickDiff = 0;
+        let opponent = '';
+
+        // Connection status
+        socket.on('connect', () => {
+            document.getElementById('connectionStatus').textContent = 'Connected';
+            document.getElementById('connectionStatus').className = 'connection-status connected';
+        });
+
+        socket.on('disconnect', () => {
+            document.getElementById('connectionStatus').textContent = 'Disconnected';
+            document.getElementById('connectionStatus').className = 'connection-status disconnected';
+        });
+
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenName + 'Screen').classList.add('active');
+            gameState = screenName;
+        }
+
+        function startGame() {
+            const nameInput = document.getElementById('nameInput');
+            const name = nameInput.value.trim();
+            
+            if (!name) return;
+            
+            playerName = name;
+            document.getElementById('waitingPlayerName').textContent = playerName;
+            showScreen('waiting');
+            
+            socket.emit('findGame', playerName);
+        }
+
+        socket.on('waiting', () => {
+            console.log('Waiting for opponent...');
+        });
+
+        socket.on('gameStart', (data) => {
+            gameId = data.gameId;
+            myPosition = data.position;
+            opponent = data.opponent;
+            
+            document.getElementById('myName').textContent = playerName;
+            document.getElementById('opponentName').textContent = opponent;
+            document.getElementById('leftPlayer').textContent = myPosition === 'player1' ? 'You' : opponent;
+            document.getElementById('rightPlayer').textContent = myPosition === 'player2' ? 'You' : opponent;
+            
+            clickDiff = 0;
+            updateProgress();
+            showScreen('playing');
+        });
+
+        socket.on('update', (data) => {
+            clickDiff = data.clickDiff;
+            updateProgress();
+        });
+
+        socket.on('gameEnd', (data) => {
+            clickDiff = data.clickDiff;
+            const isWinner = data.winner === playerName;
+            
+            document.getElementById('resultTitle').textContent = isWinner ? '🎉 You Win!' : '😢 You Lose!';
+            document.getElementById('resultText').textContent = `${data.winner} wins by ${Math.abs(clickDiff)} clicks!`;
+            
+            showScreen('finished');
+        });
+
+        socket.on('opponentLeft', () => {
+            alert('Your opponent has left the game');
+            resetGame();
+        });
+
+        function handleClick() {
+            if (gameState !== 'playing' || !gameId) return;
+            socket.emit('click', gameId);
+        }
+
+        function updateProgress() {
+            const maxDiff = 15;
+            const percentage = 50 + (clickDiff / maxDiff) * 50;
+            const clampedPercentage = Math.max(0, Math.min(100, percentage));
+            
+            document.getElementById('progressFill').style.width = clampedPercentage + '%';
+            document.getElementById('progressText').textContent = Math.abs(clickDiff);
+        }
+
+        function resetGame() {
+            gameState = 'name';
+            playerName = '';
+            gameId = null;
+            myPosition = null;
+            clickDiff = 0;
+            opponent = '';
+            
+            document.getElementById('nameInput').value = '';
+            showScreen('name');
+        }
+
+        // Handle enter key in name input
+        document.getElementById('nameInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') startGame();
+        });
+    </script>
+</body>
+</html>
